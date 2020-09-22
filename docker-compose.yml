@@ -1,0 +1,35 @@
+version: '3.2'
+
+services:
+  app:
+    image: nextcloud:fpm-alpine
+    restart: always
+    volumes:
+      - nextcloud:/var/www/html
+    environment:
+      - SQLITE_DATABASE=nextcloud
+      - NEXTCLOUD_TRUSTED_DOMAINS=nextcloud.mydomain.com
+      - OBJECTSTORE_S3_BUCKET=nextcloud-bucket
+      - OBJECTSTORE_S3_HOST=s3_url
+      - OBJECTSTORE_S3_REGION=s3_region
+      - OBJECTSTORE_S3_USEPATH_STYLE=true
+      - OBJECTSTORE_S3_SSL=true
+    env_file:
+      - nextcloud.env
+
+  web:
+    image: caddy
+    links:
+      - app
+    ports:
+      - "443:443"
+    volumes:
+      - "./caddy:/data"
+      - "./caddy:/config"
+      - "./caddy/Caddyfile:/etc/caddy/Caddyfile"
+    volumes_from:
+      - app
+    restart: always
+
+volumes:
+  nextcloud:
